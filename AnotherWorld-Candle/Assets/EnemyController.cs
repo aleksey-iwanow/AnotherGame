@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour
@@ -14,6 +15,7 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private GameObject particleDead;
     private bool isDead;
     private bool isLess;
+    private bool isAttack;
     [HideInInspector] public string type_;
     [SerializeField] public float attackDistance;
 
@@ -64,6 +66,11 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    public void Attack()
+    {
+        player.LessHealth();
+    }
+
     void Update()
     {
         if (isDead)
@@ -75,14 +82,27 @@ public class EnemyController : MonoBehaviour
         float distance = Vector2.Distance(target.position, transform.position);
         if (type_ == "Attacker")
         {
-            if (distance >= attackDistance && !isLess) {
+            if (distance >= attackDistance && !isLess)
+            {
                 agent.SetDestination(transform.position);
+                isAttack = false;
             }
-            else if(distance > 0.85f)
+            else if (distance > 1f)
+            {
                 agent.SetDestination(target.position);
+                isAttack = false;
+            }
             else
+            {
                 agent.SetDestination(transform.position);
+                isAttack = true;
+                
+                Attack();
+            }
         }
+        
+
+        animator.SetBool("isAttack", isAttack);
 
         if (agent.velocity != Vector3.zero)
         {
