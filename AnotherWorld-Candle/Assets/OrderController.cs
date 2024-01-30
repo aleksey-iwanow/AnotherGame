@@ -6,10 +6,15 @@ public class OrderController : MonoBehaviour
 {
     private Transform target;
     private List<int> defaultsOrder = new List<int>();
+    private bool stay;
+    [HideInInspector] public int orderLayer;
     [SerializeField] private float step;
-    [SerializeField] private SpriteRenderer[] renderers;
+    [SerializeField] private string exceptionTag;
+    [SerializeField] public SpriteRenderer[] renderers;
+
     void Start()
     {
+        orderLayer = renderers[0].sortingOrder;
         for (int i = 0; i < renderers.Length; i++)
         {
             defaultsOrder.Add(renderers[i].sortingOrder);
@@ -19,16 +24,19 @@ public class OrderController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!target)
+        stay = false;
+        if (target == null)
             return;
         if (target.position.y > transform.position.y - step)
             SetDefault();
         else
+        {
             for (int i = 0; i < renderers.Length; i++)
             {
-                renderers[i].sortingOrder = target.GetChild(0).GetComponent<SpriteRenderer>().sortingOrder - 1;
+                renderers[i].sortingOrder = target.GetChild(0).GetComponent<SpriteRenderer>().sortingOrder - 3;
             }
-
+            orderLayer = renderers[0].sortingOrder;
+        }
     }
 
     private void SetDefault()
@@ -37,19 +45,28 @@ public class OrderController : MonoBehaviour
         {
             renderers[i].sortingOrder = defaultsOrder[i];
         }
+        orderLayer = renderers[0].sortingOrder;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "collisionObject")
+        if (collision.tag == "collisionObject" && collision.tag != exceptionTag)
         {
             target = collision.transform;
         }
     }
 
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.tag == "collisionObject")
+        {
+            stay = true;
+        }
+    }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.name == target.name)
+        if (target != null && collision.name == target.name && !stay)
         {
             target = null;
             SetDefault();
